@@ -41,7 +41,7 @@ public void OnClientConnected(int client)
 		return;
 
 	// Store original clan tag
-	CS_GetClientClanTag(client, g_sOriginalClanTag[client], sizeof(g_sOriginalClanTag[client]));
+	CS_GetClientClanTag(client, g_sOriginalClanTag[client], sizeof(g_sOriginalClanTag[]));
 }
 
 public void OnClientSettingsChanged(int client)
@@ -50,7 +50,7 @@ public void OnClientSettingsChanged(int client)
 		return;
 
 	// Update original clan tag
-	CS_GetClientClanTag(client, g_sOriginalClanTag[client], sizeof(g_sOriginalClanTag[client]));
+	CS_GetClientClanTag(client, g_sOriginalClanTag[client], sizeof(g_sOriginalClanTag[]));
 }
 
 public void OnClientDisconnect(int client)
