@@ -68,6 +68,9 @@ public void VIP_OnVIPClientLoaded(int client)
 
 public void SetVipTag(int client)
 {
+	if (g_sOriginalClanTag[client][0] != '\0')
+		return;
+
 	char sTag[64];
 	VIP_GetClientFeatureString(client, VIP_TAG, sTag, sizeof(sTag));
 	CS_SetClientClanTag(client, sTag);
