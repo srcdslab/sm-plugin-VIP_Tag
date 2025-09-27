@@ -37,7 +37,7 @@ public Action OnToggleItem(int client, const char[] sFeatureName, VIP_ToggleStat
 
 public void OnClientConnected(int client)
 {
-	if (!IsClientInGame(client) || IsFakeClient(client))
+	if (IsFakeClient(client))
 		return;
 
 	// Store original clan tag
