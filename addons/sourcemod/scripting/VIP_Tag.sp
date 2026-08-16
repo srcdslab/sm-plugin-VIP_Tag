@@ -15,7 +15,7 @@ public Plugin myinfo =
 	name = "[VIP] Tag",
 	author = "R1KO, maxime1907",
 	description = "Gives a default VIP tag to VIPs",
-	version = "1.0.1",
+	version = "1.0.2",
 	url = ""
 };
 
@@ -35,7 +35,7 @@ public Action OnToggleItem(int client, const char[] sFeatureName, VIP_ToggleStat
 	return Plugin_Continue;
 }
 
-public void OnClientConnected(int client)
+public void OnClientPutInServer(int client)
 {
 	if (IsFakeClient(client))
 		return;
