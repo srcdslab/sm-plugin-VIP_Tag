@@ -6,27 +6,27 @@ This repository contains a SourcePawn plugin for SourceMod that provides VIP tag
 
 **Key Components:**
 - Single plugin: `VIP_Tag.sp` - Manages VIP tag display and toggling
-- Build system: SourceKnight (configured via `sourceknight.yaml`)
+- Build system: Native GitHub Actions (spcomp via `rumblefrog/setup-sp`, configured in `.github/workflows/ci.yml`)
 - CI/CD: GitHub Actions for automated building and releases
-- Dependencies: SourceMod 1.11.0+ and VIP_Core plugin
+- Dependencies: SourceMod 1.12.x and VIP_Core plugin
 
 ## Technical Environment
 
 ### Language & Platform
 - **Language**: SourcePawn (.sp files)
 - **Platform**: SourceMod 1.11.0+ (Source engine scripting platform)
-- **Compiler**: SourcePawn compiler (spcomp) via SourceKnight
+- **Compiler**: SourcePawn compiler (spcomp) via GitHub Actions (`rumblefrog/setup-sp`)
 - **Target Games**: CS:GO and other Source engine games
 
 ### Build System
-This project uses **SourceKnight** for building and dependency management:
-- Configuration: `sourceknight.yaml`
-- Build command: `sourceknight build` (via GitHub Actions)
-- Output directory: `/addons/sourcemod/plugins`
-- Dependency management: Automatic download and setup of SourceMod and VIP_Core
+This project uses **native GitHub Actions** for building and dependency management:
+- Configuration: `.github/workflows/ci.yml`
+- Build command: `spcomp` invoked directly (via `rumblefrog/setup-sp` action)
+- Output directory: `addons/sourcemod/plugins`
+- Dependency management: `git clone` of VIP_Core into `deps/`, includes copied into `addons/sourcemod/scripting/include`
 
 ### Dependencies
-1. **SourceMod**: Version 1.11.0-git6917 (automatically downloaded)
+1. **SourceMod**: Version 1.12.x (installed via `rumblefrog/setup-sp` in CI)
 2. **VIP_Core**: Latest from GitHub (srcdslab/sm-plugin-VIP-Core)
 
 ## Code Style & Standards
@@ -67,12 +67,12 @@ public void OnPluginEnd() { ... }   // Cleanup (if needed)
 
 ### Setting Up Development Environment
 1. **Clone repository**: Repository contains all necessary configuration
-2. **Dependencies**: Managed automatically by SourceKnight via `sourceknight.yaml`
-3. **Build**: Use GitHub Actions or local SourceKnight installation
+2. **Dependencies**: Fetched by the CI workflow via `git clone` of VIP_Core
+3. **Build**: Use GitHub Actions, or run `spcomp` locally with SourceMod 1.12.x and the VIP_Core includes
 
 ### Making Changes
 1. **Edit plugin**: Modify `addons/sourcemod/scripting/VIP_Tag.sp`
-2. **Test locally**: Use SourceKnight build or test server
+2. **Test locally**: Use spcomp build or test server
 3. **Commit changes**: Follow semantic commit messages
 4. **CI/CD**: GitHub Actions automatically builds and tests
 
@@ -90,16 +90,16 @@ public void OnPluginEnd() { ... }   // Cleanup (if needed)
 
 ### Local Development
 ```bash
-# If using SourceKnight locally:
-sourceknight build
+# Compile with spcomp (SourceMod 1.12.x, VIP_Core includes on the include path):
+spcomp -i include -o ../plugins/VIP_Tag.smx VIP_Tag.sp
 
 # Output will be in:
-.sourceknight/package/addons/sourcemod/plugins/VIP_Tag.smx
+addons/sourcemod/plugins/VIP_Tag.smx
 ```
 
 ### CI/CD Pipeline
 - **Trigger**: Push, PR, or manual dispatch
-- **Build**: SourceKnight action builds plugin
+- **Build**: GitHub Actions installs spcomp via `rumblefrog/setup-sp`, clones VIP_Core, and compiles the plugin
 - **Artifacts**: Compiled `.smx` files packaged for release
 - **Releases**: Automatic releases for main branch and tags
 
@@ -199,7 +199,7 @@ public void SetVipTag(int client)       // Apply tag to client
 - [VIP_Core Plugin](https://github.com/srcdslab/sm-plugin-VIP-Core)
 
 ### Tools
-- [SourceKnight](https://github.com/maxime1907/sourceknight) - Build system
+- [setup-sp](https://github.com/rumblefrog/setup-sp) - GitHub Action that installs the SourcePawn compiler
 - [SM Dev Environment](https://sm.alliedmods.net/) - Official development tools
 
 This plugin represents a simple but well-structured example of SourceMod plugin development with proper dependency management and CI/CD integration.
