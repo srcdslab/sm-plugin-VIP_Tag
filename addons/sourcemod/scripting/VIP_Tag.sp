@@ -15,7 +15,7 @@ public Plugin myinfo =
 	name = "[VIP] Tag",
 	author = "R1KO, maxime1907",
 	description = "Gives a default VIP tag to VIPs",
-	version = "1.0.2",
+	version = "1.0.3",
 	url = ""
 };
 
@@ -42,6 +42,11 @@ public void OnClientPutInServer(int client)
 
 	// Store original clan tag
 	CS_GetClientClanTag(client, g_sOriginalClanTag[client], sizeof(g_sOriginalClanTag[]));
+
+	// VIP can be loaded before the client is in game (e.g. VIP_Test grants it on auth),
+	// in which case SetVipTag skipped it: apply it now.
+	if (VIP_IsClientVIP(client) && VIP_IsClientFeatureUse(client, VIP_TAG))
+		SetVipTag(client);
 }
 
 public void OnClientSettingsChanged(int client)
@@ -68,7 +73,7 @@ public void VIP_OnVIPClientLoaded(int client)
 
 public void SetVipTag(int client)
 {
-	if (g_sOriginalClanTag[client][0] != '\0')
+	if (!IsClientInGame(client) || g_sOriginalClanTag[client][0] != '\0')
 		return;
 
 	char sTag[64];
@@ -78,5 +83,8 @@ public void SetVipTag(int client)
 
 public void RestoreOriginalClanTag(int client)
 {
+	if (!IsClientInGame(client))
+		return;
+
 	CS_SetClientClanTag(client, g_sOriginalClanTag[client]);
 }
