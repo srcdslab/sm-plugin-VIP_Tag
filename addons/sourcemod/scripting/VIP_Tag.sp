@@ -15,7 +15,7 @@ public Plugin myinfo =
 	name = "[VIP] Tag",
 	author = "R1KO, maxime1907",
 	description = "Gives a default VIP tag to VIPs",
-	version = "1.0.3",
+	version = "1.0.4",
 	url = ""
 };
 
