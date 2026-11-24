@@ -81,10 +81,31 @@ public void OnClientPutInServer(int client)
 	g_sAppliedVipTag[client][0] = '\0';
 	CS_GetClientClanTag(client, g_sOriginalClanTag[client], sizeof(g_sOriginalClanTag[]));
 
+	if (!VIP_IsClientVIP(client))
+		return;
+
+	// After a late load, an older instance may have left its VIP tag on the player
+	// (builds up to 1.0.5 do not restore tags on unload): it is not their own clan tag.
+	bool bLeftoverVipTag = IsClientVipTag(client, g_sOriginalClanTag[client]);
+	if (bLeftoverVipTag)
+		g_sOriginalClanTag[client][0] = '\0';
+
 	// VIP can be loaded before the client is in game (e.g. VIP_Test grants it on auth),
 	// in which case SetVipTag skipped it: apply it now.
-	if (VIP_IsClientVIP(client) && VIP_IsClientFeatureUse(client, VIP_TAG))
+	if (VIP_IsClientFeatureUse(client, VIP_TAG))
 		SetVipTag(client);
+	else if (bLeftoverVipTag)
+		RestoreOriginalClanTag(client);
+}
+
+bool IsClientVipTag(int client, const char[] sTag)
+{
+	if (sTag[0] == '\0')
+		return false;
+
+	char sVipTag[64];
+	VIP_GetClientFeatureString(client, VIP_TAG, sVipTag, sizeof(sVipTag));
+	return StrEqual(sTag, sVipTag);
 }
 
 public void OnClientSettingsChanged(int client)
