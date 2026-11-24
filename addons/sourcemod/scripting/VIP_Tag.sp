@@ -17,12 +17,47 @@ public Plugin myinfo =
 	name = "[VIP] Tag",
 	author = "R1KO, maxime1907",
 	description = "Gives a default VIP tag to VIPs",
-	version = "1.0.5",
+	version = "1.0.6",
 	url = ""
 };
 
+public void OnPluginStart()
+{
+	// Late load (manual reload, or SourceMod reloading an updated .smx at map change):
+	// VIP_OnVIPLoaded already fired, so register now and pick up the players in game.
+	if (VIP_IsVIPLoaded())
+	{
+		VIP_OnVIPLoaded();
+
+		for (int client = 1; client <= MaxClients; client++)
+		{
+			if (IsClientInGame(client))
+				OnClientPutInServer(client);
+		}
+	}
+}
+
+public void OnPluginEnd()
+{
+	// Give players their own clan tag back: the next instance reads it as the original one
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		if (IsClientInGame(client) && g_sAppliedVipTag[client][0] != '\0')
+			RestoreOriginalClanTag(client);
+	}
+
+	if (CanTestFeatures() && GetFeatureStatus(FeatureType_Native, "VIP_UnregisterFeature") == FeatureStatus_Available
+		&& VIP_IsValidFeature(VIP_TAG))
+		VIP_UnregisterFeature(VIP_TAG);
+}
+
 public void VIP_OnVIPLoaded()
 {
+	// Up to 1.0.5 the plugin never unregistered on unload: after a reload the core kept
+	// the feature bound to the dead plugin and the !vip toggle threw "Plugin handle is invalid".
+	if (VIP_IsValidFeature(VIP_TAG))
+		VIP_UnregisterFeature(VIP_TAG);
+
 	VIP_RegisterFeature(VIP_TAG, STRING, TOGGLABLE, OnToggleItem);
 }
 
@@ -46,10 +81,31 @@ public void OnClientPutInServer(int client)
 	g_sAppliedVipTag[client][0] = '\0';
 	CS_GetClientClanTag(client, g_sOriginalClanTag[client], sizeof(g_sOriginalClanTag[]));
 
+	if (!VIP_IsClientVIP(client))
+		return;
+
+	// After a late load, an older instance may have left its VIP tag on the player
+	// (builds up to 1.0.5 do not restore tags on unload): it is not their own clan tag.
+	bool bLeftoverVipTag = IsClientVipTag(client, g_sOriginalClanTag[client]);
+	if (bLeftoverVipTag)
+		g_sOriginalClanTag[client][0] = '\0';
+
 	// VIP can be loaded before the client is in game (e.g. VIP_Test grants it on auth),
 	// in which case SetVipTag skipped it: apply it now.
-	if (VIP_IsClientVIP(client) && VIP_IsClientFeatureUse(client, VIP_TAG))
+	if (VIP_IsClientFeatureUse(client, VIP_TAG))
 		SetVipTag(client);
+	else if (bLeftoverVipTag)
+		RestoreOriginalClanTag(client);
+}
+
+bool IsClientVipTag(int client, const char[] sTag)
+{
+	if (sTag[0] == '\0')
+		return false;
+
+	char sVipTag[64];
+	VIP_GetClientFeatureString(client, VIP_TAG, sVipTag, sizeof(sVipTag));
+	return StrEqual(sTag, sVipTag);
 }
 
 public void OnClientSettingsChanged(int client)
