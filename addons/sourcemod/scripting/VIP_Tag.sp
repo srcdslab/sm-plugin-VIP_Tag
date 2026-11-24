@@ -17,12 +17,47 @@ public Plugin myinfo =
 	name = "[VIP] Tag",
 	author = "R1KO, maxime1907",
 	description = "Gives a default VIP tag to VIPs",
-	version = "1.0.5",
+	version = "1.0.6",
 	url = ""
 };
 
+public void OnPluginStart()
+{
+	// Late load (manual reload, or SourceMod reloading an updated .smx at map change):
+	// VIP_OnVIPLoaded already fired, so register now and pick up the players in game.
+	if (VIP_IsVIPLoaded())
+	{
+		VIP_OnVIPLoaded();
+
+		for (int client = 1; client <= MaxClients; client++)
+		{
+			if (IsClientInGame(client))
+				OnClientPutInServer(client);
+		}
+	}
+}
+
+public void OnPluginEnd()
+{
+	// Give players their own clan tag back: the next instance reads it as the original one
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		if (IsClientInGame(client) && g_sAppliedVipTag[client][0] != '\0')
+			RestoreOriginalClanTag(client);
+	}
+
+	if (CanTestFeatures() && GetFeatureStatus(FeatureType_Native, "VIP_UnregisterFeature") == FeatureStatus_Available
+		&& VIP_IsValidFeature(VIP_TAG))
+		VIP_UnregisterFeature(VIP_TAG);
+}
+
 public void VIP_OnVIPLoaded()
 {
+	// Up to 1.0.5 the plugin never unregistered on unload: after a reload the core kept
+	// the feature bound to the dead plugin and the !vip toggle threw "Plugin handle is invalid".
+	if (VIP_IsValidFeature(VIP_TAG))
+		VIP_UnregisterFeature(VIP_TAG);
+
 	VIP_RegisterFeature(VIP_TAG, STRING, TOGGLABLE, OnToggleItem);
 }
 
